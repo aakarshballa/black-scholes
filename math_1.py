@@ -64,6 +64,15 @@ def greeks(S, K, T, r, q, sigma, option_type="call"):
     else:
         raise ValueError("option_type must be 'call' or 'put'")
     
+    return {
+        "delta": delta,
+        "gamma": gamma,
+        "vega": vega / 100,   # per 1% change in volatility
+        "theta": theta / 365, # per day
+        "rho": rho / 100      # per 1% change in rate
+    }
+
+
 def moneyness_label (S, K, option_type="call", tol=0.01):
     if (abs(S/K - 1.0) <= tol):
         return "ATM"
@@ -99,3 +108,28 @@ def build_grid(S, r, q, sigma, T, opt_type="call",
     df = pd.DataFrame(rows)
     return df
 
+def plot_price_vs_strike(df):
+    fig, ax = plt.subplots()
+    ax.plot(df["Strike (K)"], df["BS Price"])
+    ax.set_xlabel("Strike (K)")
+    ax.set_ylabel("Price")
+    ax.set_title("BS Price vs Strike")
+    fig.tight_layout()
+    return fig
+
+def plot_greek_vs_strike(df, greek="Delta"):
+    if greek not in df.columns:
+        raise ValueError(f"Greek {greek} not found in df.")
+    fig, ax = plt.subplots()
+    ax.plot(df["Strike (K)"], df[greek])
+    ax.set_xlabel("Strike (K)")
+    ax.set_ylabel(greek)
+    ax.set_title(f"{greek} vs Strike")
+    fig.tight_layout()
+    return fig
+
+S, r, q, sigma, T = 100, 0.035, 0.00, 0.25, 0.5
+df = build_grid(S, r, q, sigma, T, "call", 0.7, 1.3, 2.5)
+plot_price_vs_strike(df)
+plot_greek_vs_strike(df, "Delta")
+plt.show()
